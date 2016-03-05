@@ -1,0 +1,23 @@
+/* .post-type-p5js */
+input#p5js-shortcode[readonly].p5js-post {
+  background-color: #1e8cbe;
+  color: #fff;
+}
+
+input#p5js-shortcode[readonly].p5js-manage {
+  background-color: inherit;
+  border: none;
+  color: inherit;
+  box-shadow: none;
+}
+
+#wp-p5js-metabox {
+  display: none;
+}
+
+#editor-html,
+#editor-css,
+#editor-setup,
+#editor-draw {
+  height: 300px;
+}

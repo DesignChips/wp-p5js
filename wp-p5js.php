@@ -31,141 +31,87 @@ define( 'P5JS__PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'P5JS__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'P5JS__DELETE_LIMIT', 100000 );
 
-function p5js_enqueue_scripts() {
-  wp_enqueue_script('p5js', P5JS__PLUGIN_URL . 'p5.min.js');
-}
-add_action('wp_enqueue_scripts', 'p5js_enqueue_scripts');
+require_once P5JS__PLUGIN_DIR . 'admin/class.wp-p5js-script.php';
+add_action( 'init', array( 'WP_p5js_Script', 'init') );
 
-function p5js_admin_enqueue_scripts() {
-  wp_enqueue_script('p5js-ace-editor', P5JS__PLUGIN_URL . '/ace-builds/src-noconflict/ace.js');
-  wp_enqueue_script('p5js-app', P5JS__PLUGIN_URL . 'app.js', array('p5js-ace-editor'));
-}
-add_action('admin_enqueue_scripts', 'p5js_admin_enqueue_scripts');
+require_once P5JS__PLUGIN_DIR . 'admin/class.wp-p5js-posttype.php';
+add_action( 'init', array('WP_p5js_PostType', 'p5js_create_post_type') );
+add_action( 'init', array( 'WP_p5js_PostType', 'init') );
 
-/**
- * Adds a box to the main column on the Post and Page edit screens.
- */
-function p5js_add_meta_box() {
-
-	$screens = array( 'post', 'page' );
-
-	foreach ( $screens as $screen ) {
-
-		add_meta_box(
-			'myplugin_sectionid',
-			__( 'p5.js script', 'myplugin_textdomain' ),
-			'p5js_meta_box_callback',
-			$screen
-		);
-	}
-}
-add_action( 'add_meta_boxes', 'p5js_add_meta_box' );
+require_once P5JS__PLUGIN_DIR . 'admin/class.wp-p5js-shortcode.php';
+add_action( 'init', array( 'WP_p5js_Shortcode', 'init') );
 
 /**
- * Prints the box content.
- *
- * @param WP_Post $post The object for the current post/page.
+ * Preset edit single column
+ * @param  [type] $result [description]
+ * @param  [type] $option [description]
+ * @param  [type] $user   [description]
+ * @return [type]         [description]
  */
-function p5js_meta_box_callback( $post ) {
-
-	// Add a nonce field so we can check for it later.
-	wp_nonce_field( 'p5js_save_meta_box_data', 'p5js_meta_box_nonce' );
-
-	/*
-	 * Use get_post_meta() to retrieve an existing value
-	 * from the database and use the value for the form.
-	 */
-  $p5js_script = get_post_meta( $post->ID, 'p5js-script', true );
-
-  // echo '<label for="p5js-script">';
-  // _e( 'p5js-script for this field', 'myplugin_textdomain' );
-  // echo '</label> ';
-  echo '<div id="editor" style="width:100%; height:300px;">';
-  echo $p5js_script;
-  echo '</div>';
-  echo '<input type="hidden" id="p5js-script" name="p5js-script" value="">';
-  echo '<div id="p5Canvas"><div>';
-
+function screen_layout_p5js($result, $option, $user){
+  return 1;
 }
+add_filter('get_user_option_screen_layout_p5js', 'screen_layout_p5js', 10, 3);
 
-/**
- * When the post is saved, saves our custom data.
- *
- * @param int $post_id The ID of the post being saved.
- */
-function p5js_save_meta_box_data( $post_id ) {
-
-	/*
-	 * We need to verify this came from our screen and with proper authorization,
-	 * because the save_post action can be triggered at other times.
-	 */
-
-	// Check if our nonce is set.
-	if ( ! isset( $_POST['p5js_meta_box_nonce'] ) ) {
-		return;
-	}
-
-	// Verify that the nonce is valid.
-	if ( ! wp_verify_nonce( $_POST['p5js_meta_box_nonce'], 'p5js_save_meta_box_data' ) ) {
-		return;
-	}
-
-	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-
-	// Check the user's permissions.
-	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
-
-		if ( ! current_user_can( 'edit_page', $post_id ) ) {
-			return;
-		}
-
+function hk_functions_screen_options_show_screen( $show_screen ) {
+  $current_screen = get_current_screen();
+  if ( 'p5js' == $current_screen->post_type && 'post' == $current_screen->base ) {
+    return false;
 	} else {
-
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-	}
-
-	/* OK, it's safe for us to save the data now. */
-
-	// Make sure that it is set.
-	if ( ! isset( $_POST['p5js-script'] ) ) {
-		return;
-	}
-
-  $p5js_script = isset( $_POST['p5js-script'] ) ? $_POST['p5js-script'] : '';
-
-	// Sanitize user input.
-  $my_p5js_script = $_POST['p5js-script'];
-
-	// Update the meta field in the database.
-  update_post_meta( $post_id, 'p5js-script', $my_p5js_script );
-
+    return $show_screen;
+  }
 }
-add_action( 'save_post', 'p5js_save_meta_box_data' );
+add_filter( 'screen_options_show_screen', 'hk_functions_screen_options_show_screen' );
 
+/**
+ *
+ */
+ function add_p5js_columns($columns) {
+     unset($columns['author']);
+     return array_merge(
+               $columns,
+               array('shortcode' => __('Shortcode'),)
+            );
+ }
+ add_filter('manage_p5js_posts_columns' , 'add_p5js_columns');
 
-// function featured_image_before_content( $content ) {
-//    if ( is_singular('post') ) {
-//        $pre = '<div><script type="text/javascript">';
-//        $suf = '</script></div>';
-//
-//        $p5js_script = $pre . get_post_meta( get_the_ID(), 'p5js-script', true ) . $suf;
-//
-//        $content = $p5js_script . $content;
-//    }
-//    return $content;
-// }
-// add_filter( 'the_content', 'featured_image_before_content' );
+ function set_p5js_columns($columns) {
+     return array(
+         'cb' => '<input type="checkbox" />',
+         'title' => __('Title'),
+         'shortcode' => __('Shortcode'),
+         'date' => __('Date'),
+     );
+ }
+ add_filter('manage_p5js_posts_columns' , 'set_p5js_columns');
 
+ /* Display custom column */
+ function display_p5js_column( $column, $post_id ) {
+     if ($column == 'shortcode'){
+       printf(
+         '<span class="shortcode onfocus="this.select();">
+             <input type="text" id="p5js-shortcode" readonly="readonly" onfocus="this.select();" class="large-text code p5js-manage" value="%s">
+           </span>',
+         esc_attr( get_post_meta( $post_id, '_p5js_shortcode', true ) )
+       );
+     }
+ }
+ add_action( 'manage_posts_custom_column' , 'display_p5js_column', 10, 2 );
 
-function p5js_shortcode( $atts ){
-  $pre = '<div><script type="text/javascript">';
-  $suf = '</script></div>';
-  $p5js_script = $pre . get_post_meta( get_the_ID(), 'p5js-script', true ) . $suf;
-	return $p5js_script;
+/**
+ * No display permalink
+ */
+add_filter( 'get_sample_permalink_html', '__return_false' );
+
+function featured_image_before_content( $content ) {
+   if ( is_singular('p5js') ) {
+       $pre = '<div><script type="text/javascript">';
+       $suf = '</script></div>';
+
+       $p5js_script = $pre . get_post_meta( get_the_ID(), 'p5js-script', true ) . $suf;
+
+       $content = $p5js_script . $content;
+   }
+   return $content;
 }
-add_shortcode( 'p5js', 'p5js_shortcode' );
+add_filter( 'the_content', 'featured_image_before_content' );

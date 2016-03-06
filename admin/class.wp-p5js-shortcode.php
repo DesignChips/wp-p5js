@@ -58,13 +58,14 @@ class WP_p5js_Shortcode
                   %4$s
               </div>
               <div id="p5js-admin-preview">
-                  <p>メニュー 5 の内容。</p>
+                  %5$s
               </div>
             </div>',
           get_post_meta( $post->ID, 'p5js-html', true ),
           get_post_meta( $post->ID, 'p5js-css', true ),
           get_post_meta( $post->ID, 'p5js-setup', true ),
-          get_post_meta( $post->ID, 'p5js-draw', true )
+          get_post_meta( $post->ID, 'p5js-draw', true ),
+          do_shortcode( "[p5js id='$post->ID' title='']" )
         );
     } else {
       return;
@@ -79,15 +80,31 @@ class WP_p5js_Shortcode
         'title' => '',
     ), $atts );
 
-    $pre = '<div><script type="text/javascript">';
-    $suf = '</script></div>';
+    $html_pre = '';
+    $html_suf = '';
+    $content_html = '';
 
-    $script = '';
+    $css_pre = '<style><!--';
+    $css_suf = '--></style>';
+    $content_css = '';
+
+    $js_pre = '<div><script type="text/javascript">';
+    $js_suf = '</script></div>';
+    $content_setup = '';
+    $content_draw = '';
+
     if( ! empty($shortcode_atts['id']) ) {
-      $script = get_post_meta( $shortcode_atts['id'], 'p5js-script', true );
+      $content_html  = get_post_meta( $shortcode_atts['id'], 'p5js-html', true );
+      $content_css   = get_post_meta( $shortcode_atts['id'], 'p5js-css', true );
+      $content_setup = get_post_meta( $shortcode_atts['id'], 'p5js-setup', true );
+      $content_draw  = get_post_meta( $shortcode_atts['id'], 'p5js-draw', true );
     }
 
-    $p5js_script = $pre . $script . $suf;
-    return $p5js_script;
+    $p5js_html  = $html_pre . $content_html  . $html_suf;
+    $p5js_css   = $css_pre  . $content_css   . $css_suf;
+    $p5js_setup = $js_pre   . $content_setup . $js_suf;
+    $p5js_draw  = $js_pre   . $content_draw  . $js_suf;
+
+    return $p5js_html . $p5js_css . $p5js_setup . $p5js_draw;
   }
 }

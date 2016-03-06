@@ -49,7 +49,7 @@ add_action( 'init', array( 'WP_p5js_Shortcode', 'init') );
  * @return [type]         [description]
  */
 function screen_layout_p5js($result, $option, $user){
-  return 1;
+  return false;
 }
 add_filter('get_user_option_screen_layout_p5js', 'screen_layout_p5js', 10, 3);
 

@@ -23,7 +23,10 @@ class WP_p5js_Screen_Settings
    * @param  [type] $user   [description]
    * @return [type]         [description]
    */
-  public static function screen_layout_p5js($result, $option, $user){
-    return 1;
+  public static function screen_layout_p5js( $selected ) {
+    if( false === $selected ) {
+         return 1; // Use 1 column if user hasn't selected anything in Screen Options
+     }
+     return $selected; // Use what the user wants
   }
 }

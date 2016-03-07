@@ -3,7 +3,7 @@
 Plugin Name: wp-p5js
 Plugin URI:
 Description: enable p5.js
-Version: 1.0.0
+Version: 0.1.0
 Author: DesignChips
 Author URI: http://www.designchips.net
 License: GPL2
@@ -25,7 +25,7 @@ License: GPL2
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-define( 'P5JS__VERSION', '1.0.0' );
+define( 'P5JS__VERSION', '0.1.0' );
 define( 'P5JS__MINIMUM_WP_VERSION', '4.4' );
 define( 'P5JS__PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'P5JS__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

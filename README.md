@@ -22,7 +22,7 @@ p5js has 4 text area.
  * for Setup
  * for Draw
 
-[日本語の説明](https://github.com/DesignChips/wp-p5js/blob/master/README_JP.txt)
+[日本語の説明](https://github.com/DesignChips/wp-p5js/blob/master/README_JP.md)
 
 ## Installation
 
